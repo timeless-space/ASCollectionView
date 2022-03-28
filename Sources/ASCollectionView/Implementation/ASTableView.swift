@@ -15,6 +15,7 @@ public struct ASTableView<SectionID: Hashable>: UIViewControllerRepresentable, C
 
 	public typealias OnScrollCallback = ((_ contentOffset: CGPoint, _ contentSize: CGSize) -> Void)
 	public typealias OnReachedBottomCallback = (() -> Void)
+    public typealias OnScrolledCallback = ((_ isScrolled: Bool) -> Void)
 
 	// MARK: Key variables
 
@@ -26,6 +27,7 @@ public struct ASTableView<SectionID: Hashable>: UIViewControllerRepresentable, C
 
 	internal var onScrollCallback: OnScrollCallback?
 	internal var onReachedBottomCallback: OnReachedBottomCallback?
+    internal var onScrolledCallback: OnScrolledCallback?
 
 	internal var scrollPositionSetter: Binding<ASTableViewScrollPosition?>?
 
@@ -795,6 +797,22 @@ public struct ASTableView<SectionID: Hashable>: UIViewControllerRepresentable, C
 			checkIfReachedBottom(scrollView)
 		}
 
+        public func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+            scrollingStateChanged(true)
+        }
+
+        public func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+            if !decelerate { scrollingStateChanged(false) }
+        }
+
+        public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+            scrollingStateChanged(false)
+        }
+
+        public func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+            scrollingStateChanged(false)
+        }
+
 		var hasAlreadyReachedBottom: Bool = false
 		func checkIfReachedBottom(_ scrollView: UIScrollView)
 		{
@@ -905,6 +923,10 @@ public struct ASTableView<SectionID: Hashable>: UIViewControllerRepresentable, C
 			keyboardFrame = nil
 			tableViewController?.tableView.layoutIfNeeded()
 		}
+
+        func scrollingStateChanged(_ isScrolled: Bool) {
+            parent.onScrolledCallback?(isScrolled)
+        }
 	}
 }
 
